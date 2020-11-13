@@ -41,17 +41,22 @@ type S3 struct {
 }
 
 // Provider returns a provider that takes a simples3 config.
-func Provider(cfg Config) *S3 {
+func Provider(cfg Config) (*S3, error) {
 	var s3 *simples3.S3
+	var err error
+
 	if cfg.UseIAM {
-		simples3.NewUsingIAM(cfg.Region)
+		s3, err = simples3.NewUsingIAM(cfg.Region)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		s3 = simples3.New(cfg.Region, cfg.AccessKey, cfg.SecretKey)
 	}
 
 	s3.SetEndpoint(cfg.Endpoint)
 
-	return &S3{s3: s3, cfg: cfg}
+	return &S3{s3: s3, cfg: cfg}, nil
 }
 
 // ReadBytes reads the contents of a file on s3 and returns the bytes.
