@@ -29,6 +29,9 @@ type Config struct {
 
 	// Optional: Custom S3 compatible endpoint
 	Endpoint string
+
+	// use IAM
+	UseIAM bool
 }
 
 // S3 implements a s3 provider.
@@ -39,7 +42,13 @@ type S3 struct {
 
 // Provider returns a provider that takes a simples3 config.
 func Provider(cfg Config) *S3 {
-	s3 := simples3.New(cfg.Region, cfg.AccessKey, cfg.SecretKey)
+	var s3 *simples3.S3
+	if cfg.UseIAM {
+		simples3.NewUsingIAM(cfg.Region)
+	} else {
+		s3 = simples3.New(cfg.Region, cfg.AccessKey, cfg.SecretKey)
+	}
+
 	s3.SetEndpoint(cfg.Endpoint)
 
 	return &S3{s3: s3, cfg: cfg}
